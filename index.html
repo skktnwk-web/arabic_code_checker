@@ -1,0 +1,71 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Arabic & Persian Character Checker</title>
+    <link href="https://fonts.googleapis.com/css2?family=Amiri:ital,wght@0,400;0,700;1,400&family=Outfit:wght@300;400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="app-container">
+        <header>
+            <h1>Character Code Checker</h1>
+            <p class="subtitle">Persian & Arabic Text Analyzer</p>
+        </header>
+        <main>
+            <div class="input-section">
+                <div class="controls">
+                    <label class="radio-container">
+                        <input type="radio" name="language" value="Persian" checked>
+                        <span class="radio-label">Persian (Farsi)</span>
+                    </label>
+                    <label class="radio-container">
+                        <input type="radio" name="language" value="Arabic">
+                        <span class="radio-label">Arabic</span>
+                    </label>
+                    <button id="analyze-btn" class="primary-btn">Analyze Text</button>
+                    <button id="clear-btn" class="secondary-btn">Clear</button>
+                </div>
+                <div class="textarea-wrapper">
+                    <textarea id="text-input" placeholder="Paste your text here..." dir="auto"></textarea>
+                </div>
+                <div class="char-codes-container" id="all-char-codes-display">
+                    <span class="placeholder-text">Character code breakdown will appear here...</span>
+                </div>
+            </div>
+            <div class="output-section">
+                <div class="visual-col">
+                    <h3>Highlighted Text</h3>
+                    <div class="results-visual" id="results-display" dir="auto">
+                        <span class="placeholder-text">Analysis highlights...</span>
+                    </div>
+                </div>
+                <div class="table-col">
+                    <h3>Analysis Report</h3>
+                    <div class="table-scroll">
+                        <table id="results-table">
+                            <thead>
+                                <tr>
+                                    <th>Char</th>
+                                    <th>Code</th>
+                                    <th>Name</th>
+                                    <th>Level</th>
+                                    <th>Reason</th>
+                                    <th>Action</th>
+                                </tr>
+                            </thead>
+                            <tbody></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+    <footer>
+        <p><strong>Character Code Checker</strong> - A tool to detect and correct script mixing issues in Persian and Arabic text.</p>
+        <p>Built for precision and ease of use.</p>
+    </footer>
+    <script src="script.js"></script>
+</body>
+</html>
