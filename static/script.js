@@ -53,6 +53,17 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     };
 
+    const GLOBAL_ISSUE_RANGES = [
+        { start: 0xFB50, end: 0xFDFF, name: 'Arabic Presentation Forms-A' },
+        { start: 0xFE70, end: 0xFEFF, name: 'Arabic Presentation Forms-B' }
+    ];
+
+    const GLOBAL_ISSUE_REASON = 'The use of characters in the Arabic Presentation Forms block should be avoided.';
+
+    const GLOBAL_ISSUE_NAMES = {
+        // If specific glyph names are needed, add them here with U+NNNN keys.
+    };
+
     const UNICODE_NAMES = {
         'ي': 'Arabic Yeh (U+064A)',
         'ی': 'Farsi Yeh (U+06CC)',
@@ -196,20 +207,43 @@ document.addEventListener('DOMContentLoaded', () => {
 
         for (let i = 0; i < text.length; i++) {
             const char = text[i];
+            const cp = char.codePointAt(0);
+            const hexCode = 'U+' + cp.toString(16).toUpperCase().padStart(4, '0');
             let reason = null;
             let suggestion = null;
+            let pushed = false;
 
             if (Object.prototype.hasOwnProperty.call(issueChars, char)) {
                 reason = issueChars[char];
                 suggestion = replacements[char] || null;
-                const code = 'U+' + char.codePointAt(0).toString(16).toUpperCase().padStart(4, '0');
-                const name = UNICODE_NAMES[char] || code;
-                // Note: `level`/`category` removed because the web UI doesn't use it.
-                results.push({ index: i, char, code, name, reason, suggestion });
+                const name = getUnicodeName(char, hexCode);
+                results.push({ index: i, char, code: hexCode, name, reason, suggestion });
+                pushed = true;
+            }
+
+            if (!pushed) {
+                for (const r of GLOBAL_ISSUE_RANGES) {
+                    if (cp >= r.start && cp <= r.end) {
+                        reason = GLOBAL_ISSUE_REASON;
+                        suggestion = null;
+                        const rangeName = r.name || 'Arabic Presentation Forms';
+                        const name = getUnicodeName(char, hexCode, rangeName);
+                        results.push({ index: i, char, code: hexCode, name, reason, suggestion });
+                        break;
+                    }
+                }
             }
         }
 
         return results;
+    }
+
+    function getUnicodeName(char, fallbackCode, rangeName) {
+        if (Object.prototype.hasOwnProperty.call(UNICODE_NAMES, char)) {
+            return UNICODE_NAMES[char];
+        }
+
+        return rangeName ? `${rangeName} (${fallbackCode})` : fallbackCode;
     }
 
     function renderAllCharCodes(text) {
