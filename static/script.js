@@ -306,9 +306,9 @@ document.addEventListener('DOMContentLoaded', () => {
             const row = document.createElement('tr');
             row.id = 'result-row-' + listIndex;
             const isFixed = appliedFixes.has(listIndex);
-            const suggCode = item.suggestion ? ' U+' + item.suggestion.codePointAt(0).toString(16).toUpperCase().padStart(4, '0') : '';
-            const reasonText = (item.reason || '') + (item.suggestion ? ' <span class="suggestion-preview">(→ ' + item.suggestion + suggCode + ')</span>' : '');
-            const actionButtonHtml = item.suggestion ? '<button class="' + (isFixed ? 'fix-action-btn active' : 'fix-action-btn') + '" data-list-index="' + listIndex + '">' + (isFixed ? 'Fixed ✓' : 'Fix (→ ' + item.suggestion + ')') + '</button>' : '';
+            const suggButtonLabel = item.suggestion ? 'Fix (→ ' + item.suggestion + ' U+' + item.suggestion.codePointAt(0).toString(16).toUpperCase().padStart(4, '0') + ')' : '';
+            const reasonText = item.reason || '';
+            const actionButtonHtml = item.suggestion ? '<button class="' + (isFixed ? 'fix-action-btn active' : 'fix-action-btn') + '" data-list-index="' + listIndex + '">' + (isFixed ? 'Fixed ✓' : suggButtonLabel) + '</button>' : '';
 
             row.innerHTML =
                 '<td style="font-family:var(--font-arabic);font-size:1.3rem;text-align:center;font-weight:600;">' + item.char + '</td>' +
