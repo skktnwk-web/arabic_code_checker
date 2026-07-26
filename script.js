@@ -1,53 +1,3 @@
-const LANGUAGE_RULES = {
-    "Persian": {
-        "error": {
-            "ي": { reason: "Arabic Yeh (U+064A) is normally replaced by Farsi Yeh (U+06CC)", suggestion: "ی" },
-            "ك": { reason: "Arabic Kaf (U+0643) is normally replaced by Keheh (U+06A9)", suggestion: "ک" },
-            "ى": { reason: "Arabic Alef Maqsura (U+0649) is not used in Persian", suggestion: "ی" },
-        },
-        "warning": {
-            "ۀ": { reason: "Heh with Yeh above (U+06C0) is context-dependent" },
-            "ة": { reason: "Teh Marbuta (U+0629) is rare in Persian and usually replaced by Heh", suggestion: "ه" },
-            "ؤ": { reason: "Waw with Hamza above is usually Arabic-origin vocabulary" },
-            "ئ": { reason: "Yeh with Hamza above is usually Arabic-origin vocabulary" },
-        }
-    },
-    "Arabic": {
-        "error": {
-            "پ": { reason: "Peh (U+067E) is not used in Arabic", suggestion: "ب" },
-            "چ": { reason: "Tcheh (U+0686) is not used in Arabic", suggestion: "ج" },
-            "ژ": { reason: "Jeh (U+0698) is not used in Arabic", suggestion: "ز" },
-            "گ": { reason: "Gaf (U+06AF) is not used in Arabic", suggestion: "ك" },
-            "ی": { reason: "Farsi Yeh (U+06CC) should be Arabic Yeh (U+064A)", suggestion: "ي" },
-            "ک": { reason: "Keheh (U+06A9) should be Arabic Kaf (U+0643)", suggestion: "ك" },
-        },
-        "warning": {
-            "ڤ": { reason: "Veh (U+06A4) appears only in loanwords in Arabic" },
-            "ـ": { reason: "Tatweel (Kashida) should not be used in normalized Arabic text" },
-            "‌": { reason: "Zero-width non-joiner may affect searching and normalization" },
-        }
-    }
-};
-
-const CHAR_NAMES = {
-    "ي": "ARABIC LETTER YEH",
-    "ك": "ARABIC LETTER KAF",
-    "ى": "ARABIC LETTER ALEF MAKSURA",
-    "ۀ": "ARABIC LETTER HEH WITH YEH ABOVE",
-    "ة": "ARABIC LETTER TEH MARBUTA",
-    "ؤ": "ARABIC LETTER WAW WITH HAMZA ABOVE",
-    "ئ": "ARABIC LETTER YEH WITH HAMZA ABOVE",
-    "پ": "ARABIC LETTER PEH",
-    "چ": "ARABIC LETTER TCHEH",
-    "ژ": "ARABIC LETTER JEH",
-    "گ": "ARABIC LETTER GAF",
-    "ی": "ARABIC LETTER FARSI YEH",
-    "ک": "ARABIC LETTER KEHEH",
-    "ڤ": "ARABIC LETTER VEH",
-    "ـ": "ARABIC TATWEEL",
-    "‌": "ZERO WIDTH NON-JOINER"
-};
-
 document.addEventListener('DOMContentLoaded', () => {
     const analyzeBtn = document.getElementById('analyze-btn');
     const clearBtn = document.getElementById('clear-btn');
@@ -56,89 +6,210 @@ document.addEventListener('DOMContentLoaded', () => {
     const allCharCodesDisplay = document.getElementById('all-char-codes-display');
     const resultsTableBody = document.querySelector('#results-table tbody');
     const languageRadios = document.getElementsByName('language');
+    const correctedTextOutput = document.getElementById('corrected-text-output');
+    const copyCorrectedBtn = document.getElementById('copy-corrected-btn');
+    const fixAllBtn = document.getElementById('fix-all-btn');
+
+    // Simplified rules: combine previous `error` and `warning` maps into a single `issues` map
+    // Web UI does not differentiate categories, so a single lookup keeps data smaller and clearer.
+    const LANGUAGE_RULES = {
+        Persian: {
+            issues: {
+                'ي': 'Arabic Yeh (U+064A) is normally replaced by Farsi Yeh (U+06CC)',
+                'ك': 'Arabic Kaf (U+0643) is normally replaced by Keheh (U+06A9)',
+                'ى': 'Arabic Alef Maqsura (U+0649) is not used in Persian',
+                'ۀ': 'Heh with Yeh above (U+06C0) is context-dependent',
+                'ة': 'Teh Marbuta (U+0629) is rare in Persian and usually replaced by Heh',
+                'ؤ': 'Waw with Hamza above is usually Arabic-origin vocabulary',
+                'ئ': 'Yeh with Hamza above is usually Arabic-origin vocabulary'
+            },
+            replacement: {
+                'ي': 'ی',
+                'ك': 'ک',
+                'ى': 'ی',
+                'ة': 'ه'
+            }
+        },
+        Arabic: {
+            issues: {
+                'پ': 'Peh (U+067E) is not used in Arabic',
+                'چ': 'Tcheh (U+0686) is not used in Arabic',
+                'ژ': 'Jeh (U+0698) is not used in Arabic',
+                'گ': 'Gaf (U+06AF) is not used in Arabic',
+                'ی': 'Farsi Yeh (U+06CC) should be Arabic Yeh (U+064A)',
+                'ک': 'Keheh (U+06A9) should be Arabic Kaf (U+0643)',
+                'ڤ': 'Veh (U+06A4) appears only in loanwords in Arabic',
+                'ـ': 'Tatweel (Kashida) should not be used in normalized Arabic text',
+                '‌': 'Zero-width non-joiner may affect searching and normalization'
+            },
+            replacement: {
+                'پ': 'ب',
+                'چ': 'ج',
+                'ژ': 'ز',
+                'گ': 'ك',
+                'ی': 'ي',
+                'ک': 'ك'
+            }
+        }
+    };
+
+    const UNICODE_NAMES = {
+        'ي': 'Arabic Yeh (U+064A)',
+        'ی': 'Farsi Yeh (U+06CC)',
+        'ك': 'Arabic Kaf (U+0643)',
+        'ک': 'Keheh (U+06A9)',
+        'ى': 'Arabic Alef Maqsura (U+0649)',
+        'ة': 'Teh Marbuta (U+0629)',
+        'ۀ': 'Heh with Yeh above (U+06C0)',
+        'ؤ': 'Waw with Hamza above (U+0624)',
+        'ئ': 'Yeh with Hamza above (U+0626)',
+        'پ': 'Peh (U+067E)',
+        'چ': 'Tcheh (U+0686)',
+        'ژ': 'Jeh (U+0698)',
+        'گ': 'Gaf (U+06AF)',
+        'ڤ': 'Veh (U+06A4)',
+        'ـ': 'Tatweel (Kashida, U+0640)',
+        '‌': 'Zero-width non-joiner (U+200C)'
+    };
 
     let currentResults = [];
+    let appliedFixes = new Set();
 
-    if (analyzeBtn) {
-        analyzeBtn.addEventListener('click', performAnalysis);
+    const urlParams = new URLSearchParams(window.location.search);
+    const testParam = urlParams.get('test');
+    if (testParam) {
+        textInput.value = decodeURIComponent(testParam);
+        setTimeout(performAnalysis, 100);
     }
 
-    clearBtn.addEventListener('click', () => {
+    analyzeBtn?.addEventListener('click', performAnalysis);
+    clearBtn?.addEventListener('click', clearAll);
+    textInput?.addEventListener('keydown', handleTextInputKeydown);
+    textInput?.addEventListener('input', clearIfEmpty);
+    copyCorrectedBtn?.addEventListener('click', copyCorrectedText);
+    fixAllBtn?.addEventListener('click', handleFixAll);
+
+    function clearAll() {
         textInput.value = '';
-        resultsDisplay.innerHTML = '<span class="placeholder-text">Analysis highlights...</span>';
-        allCharCodesDisplay.innerHTML = '<span class="placeholder-text">Character code breakdown...</span>';
+        resultsDisplay.innerHTML = '<span class="placeholder-text">Analysis highlights will appear here...</span>';
+        allCharCodesDisplay.innerHTML = '<span class="placeholder-text">Character code breakdown will appear here...</span>';
         resultsTableBody.innerHTML = '';
         currentResults = [];
-    });
+        appliedFixes.clear();
+        correctedTextOutput.value = '';
+    }
 
-    textInput.addEventListener('keydown', (e) => {
+    function handleTextInputKeydown(e) {
         if (e.key === 'Enter' && !e.shiftKey) {
             e.preventDefault();
             performAnalysis();
         }
-    });
-
-    textInput.addEventListener('input', () => {
-        const text = textInput.value;
-        if (!text) {
-            resultsDisplay.innerHTML = '<span class="placeholder-text">Analysis highlights...</span>';
-            allCharCodesDisplay.innerHTML = '<span class="placeholder-text">Character code breakdown...</span>';
-            resultsTableBody.innerHTML = '';
-            currentResults = [];
-        }
-    });
-
-    function getSelectedLanguage() {
-        for (const radio of languageRadios) {
-            if (radio.checked) return radio.value;
-        }
-        return 'Persian';
     }
+
+    function clearIfEmpty() {
+        if (!textInput.value) {
+            clearAll();
+        }
+    }
+
+    function copyCorrectedText() {
+        if (!correctedTextOutput || !correctedTextOutput.value) return;
+        correctedTextOutput.select();
+        navigator.clipboard.writeText(correctedTextOutput.value).catch(() => {});
+    }
+
+    function handleFixAll() {
+        if (!currentResults || currentResults.length === 0) return;
+
+        const fixableIndices = currentResults
+            .map((item, idx) => item.suggestion ? idx : null)
+            .filter(idx => idx !== null);
+
+        const allApplied = fixableIndices.every(idx => appliedFixes.has(idx));
+        if (allApplied) {
+            appliedFixes.clear();
+        } else {
+            fixableIndices.forEach(idx => appliedFixes.add(idx));
+        }
+
+        renderTable(currentResults);
+        updateCorrectedText();
+        updateFixAllButtonLabel();
+    }
+
+    function updateFixAllButtonLabel() {
+        if (!currentResults || currentResults.length === 0) {
+            fixAllBtn.textContent = 'Fix All';
+            fixAllBtn.classList.remove('secondary-btn');
+            fixAllBtn.classList.add('fix-action-btn');
+            return;
+        }
+        const fixableIndices = currentResults
+            .map((item, idx) => item.suggestion ? idx : null)
+            .filter(idx => idx !== null);
+        if (fixableIndices.length > 0 && fixableIndices.every(idx => appliedFixes.has(idx))) {
+            // All fixes applied -> show Undo (gray)
+            fixAllBtn.textContent = 'Undo';
+            fixAllBtn.classList.remove('fix-action-btn');
+            fixAllBtn.classList.add('secondary-btn');
+        } else {
+            // Some or none applied -> show Fix All (blue)
+            fixAllBtn.textContent = 'Fix All';
+            fixAllBtn.classList.remove('secondary-btn');
+            fixAllBtn.classList.add('fix-action-btn');
+        }
+    }
+
+    // initialize Fix All button style
+    updateFixAllButtonLabel();
 
     function performAnalysis() {
         const text = textInput.value;
         if (!text) return;
 
-        const lang = getSelectedLanguage();
-        const rules = LANGUAGE_RULES[lang] || {};
-        const errors = rules.error || {};
-        const warnings = rules.warning || {};
-
-        currentResults = [];
-
-        for (let i = 0; i < text.length; i++) {
-            const char = text[i];
-            let category = null;
-            let info = null;
-
-            if (errors[char]) {
-                category = "ERROR";
-                info = errors[char];
-            } else if (warnings[char]) {
-                category = "WARNING";
-                info = warnings[char];
-            }
-
-            if (category) {
-                const codePoint = char.codePointAt(0);
-                const code = "U+" + codePoint.toString(16).toUpperCase().padStart(4, '0');
-                const name = CHAR_NAMES[char] || "UNKNOWN";
-
-                currentResults.push({
-                    index: i,
-                    char: char,
-                    code: code,
-                    name: name,
-                    level: category,
-                    reason: info.reason,
-                    suggestion: info.suggestion
-                });
+        let selectedLang = 'Arabic';
+        for (const radio of languageRadios) {
+            if (radio.checked) {
+                selectedLang = radio.value;
+                break;
             }
         }
+
+        currentResults = analyzeText(text, selectedLang);
+        // Do not auto-apply fixes after analysis; keep corrected text unmodified by default.
+        appliedFixes.clear();
+
+        updateFixAllButtonLabel();
 
         renderResults(text, currentResults);
         renderTable(currentResults);
         renderAllCharCodes(text);
+        updateCorrectedText();
+    }
+
+    function analyzeText(text, language) {
+        const rules = LANGUAGE_RULES[language] || LANGUAGE_RULES.Persian;
+        // single map for any issue (previously split into `error`/`warning` in the server-side code)
+        const issueChars = rules.issues || {};
+        const replacements = rules.replacement || {};
+        const results = [];
+
+        for (let i = 0; i < text.length; i++) {
+            const char = text[i];
+            let reason = null;
+            let suggestion = null;
+
+            if (Object.prototype.hasOwnProperty.call(issueChars, char)) {
+                reason = issueChars[char];
+                suggestion = replacements[char] || null;
+                const code = 'U+' + char.codePointAt(0).toString(16).toUpperCase().padStart(4, '0');
+                const name = UNICODE_NAMES[char] || code;
+                // Note: `level`/`category` removed because the web UI doesn't use it.
+                results.push({ index: i, char, code, name, reason, suggestion });
+            }
+        }
+
+        return results;
     }
 
     function renderAllCharCodes(text) {
@@ -146,43 +217,16 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!text) return;
 
         const fragment = document.createDocumentFragment();
-
         for (let i = 0; i < text.length; i++) {
             const char = text[i];
             const code = char.codePointAt(0).toString(16).toUpperCase().padStart(4, '0');
             const span = document.createElement('span');
             span.className = 'code-pill';
-            span.style.cursor = 'default';
-
-            let displayChar = char;
-            if (char === ' ') displayChar = 'Space';
-            else if (char === '\n') displayChar = 'LF';
-            else if (char === '\t') displayChar = 'Tab';
-
-            span.textContent = `${displayChar} (U+${code})`;
-
+            span.textContent = getDisplayChar(char) + ' (U+' + code + ')';
             span.addEventListener('mouseenter', () => highlightCharInVisual(i));
             span.addEventListener('mouseleave', () => unhighlightCharInVisual(i));
-
-            span.addEventListener('dblclick', (e) => {
-                e.preventDefault();
-                const selection = window.getSelection();
-                const range = document.createRange();
-                const fullText = span.textContent;
-                const startPos = fullText.indexOf('U+');
-                const endPos = fullText.lastIndexOf(')');
-
-                if (startPos !== -1 && endPos !== -1 && span.firstChild) {
-                    range.setStart(span.firstChild, startPos);
-                    range.setEnd(span.firstChild, endPos);
-                    selection.removeAllRanges();
-                    selection.addRange(range);
-                }
-            });
-
             fragment.appendChild(span);
         }
-
         allCharCodesDisplay.appendChild(fragment);
     }
 
@@ -191,21 +235,18 @@ document.addEventListener('DOMContentLoaded', () => {
         const fragment = document.createDocumentFragment();
         const resultsMap = new Map();
 
-        if (results) {
-            results.forEach((item, listIndex) => {
-                resultsMap.set(item.index, { ...item, listIndex });
-            });
-        }
+        results.forEach((item, listIndex) => {
+            resultsMap.set(item.index, { ...item, listIndex });
+        });
 
         for (let i = 0; i < text.length; i++) {
             const char = text[i];
             const span = document.createElement('span');
-            span.textContent = char;
             span.dataset.charIndex = i;
-
+            span.textContent = char;
             if (resultsMap.has(i)) {
                 const item = resultsMap.get(i);
-                span.className = `char-${item.level.toLowerCase()}`;
+                span.className = 'char-issue';
                 span.dataset.listIndex = item.listIndex;
                 span.addEventListener('mouseenter', () => highlightTable(item.listIndex));
                 span.addEventListener('mouseleave', () => unhighlightTable(item.listIndex));
@@ -220,93 +261,100 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function renderTable(results) {
         resultsTableBody.innerHTML = '';
-
         if (!results || results.length === 0) {
             const row = document.createElement('tr');
-            row.innerHTML = `
-                <td colspan="6" style="text-align: center; padding: 2rem; color: #27ae60; font-weight: 500;">
-                    ✓ 問題は見つかりませんでした。すべての文字が適切です。
-                </td>
-            `;
+            row.innerHTML = '<td colspan="5" style="text-align:center;padding:2rem;color:#27ae60;font-weight:500;">✓ No issues found. All characters match the selected script.</td>';
             resultsTableBody.appendChild(row);
             return;
         }
 
         results.forEach((item, listIndex) => {
             const row = document.createElement('tr');
-            row.id = `result-row-${listIndex}`;
+            row.id = 'result-row-' + listIndex;
+            const isFixed = appliedFixes.has(listIndex);
+            const suggCode = item.suggestion ? ' U+' + item.suggestion.codePointAt(0).toString(16).toUpperCase().padStart(4, '0') : '';
+            const reasonText = (item.reason || '') + (item.suggestion ? ' <span class="suggestion-preview">(→ ' + item.suggestion + suggCode + ')</span>' : '');
+            const actionButtonHtml = item.suggestion ? '<button class="' + (isFixed ? 'fix-action-btn active' : 'fix-action-btn') + '" data-list-index="' + listIndex + '">' + (isFixed ? 'Fixed ✓' : 'Fix (→ ' + item.suggestion + ')') + '</button>' : '';
 
-            let suggestionCode = '';
-            if (item.suggestion) {
-                const codePoint = item.suggestion.codePointAt(0);
-                suggestionCode = ' U+' + codePoint.toString(16).toUpperCase().padStart(4, '0');
-            }
-
-            row.innerHTML = `
-                <td><span style="font-family: var(--font-arabic); font-size: 1.2rem;">${item.char}</span></td>
-                <td><span style="font-family: monospace;">${item.code}</span></td>
-                <td>${item.name}</td>
-                <td><span class="tag tag-${item.level.toLowerCase()}">${item.level}</span></td>
-                <td>${item.reason || ''}</td>
-                <td>
-                    ${item.suggestion ? `<button class="fix-btn" onclick="applyFix(${listIndex})">Fix (${item.suggestion}${suggestionCode})</button>` : ''}
-                </td>
-            `;
+            row.innerHTML =
+                '<td style="font-family:var(--font-arabic);font-size:1.3rem;text-align:center;font-weight:600;">' + item.char + '</td>' +
+                '<td style="font-family:monospace;font-weight:600;color:var(--secondary-color);">' + item.code + '</td>' +
+                '<td>' + item.name + '</td>' +
+                '<td>' + reasonText + '</td>' +
+                '<td style="text-align:center;">' + actionButtonHtml + '</td>';
 
             row.addEventListener('mouseenter', () => highlightVisualByListIndex(listIndex));
             row.addEventListener('mouseleave', () => unhighlightVisualByListIndex(listIndex));
             resultsTableBody.appendChild(row);
+
+            const fixBtn = row.querySelector('.fix-action-btn');
+            if (fixBtn) {
+                fixBtn.addEventListener('click', (e) => {
+                    const idx = parseInt(e.target.dataset.listIndex, 10);
+                    if (appliedFixes.has(idx)) appliedFixes.delete(idx);
+                    else appliedFixes.add(idx);
+                    renderTable(currentResults);
+                    updateCorrectedText();
+                    updateFixAllButtonLabel();
+                });
+            }
         });
     }
 
-    function highlightCharInVisual(charIndex) {
-        const span = resultsDisplay.querySelector(`span[data-char-index="${charIndex}"]`);
-        if (span) {
-            span.classList.add('char-hover-active');
-            span.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'nearest' });
+    function updateCorrectedText() {
+        if (!correctedTextOutput) return;
+        const originalText = textInput.value;
+        if (!originalText) {
+            correctedTextOutput.value = '';
+            return;
         }
+
+        const sortedFixes = Array.from(appliedFixes)
+            .map(idx => currentResults[idx])
+            .filter(item => item && item.suggestion != null)
+            .sort((a, b) => b.index - a.index);
+
+        const chars = originalText.split('');
+        sortedFixes.forEach(item => {
+            chars[item.index] = item.suggestion;
+        });
+        correctedTextOutput.value = chars.join('');
+    }
+
+    function highlightCharInVisual(charIndex) {
+        const span = resultsDisplay.querySelector('[data-char-index="' + charIndex + '"]');
+        if (span) span.classList.add('char-hover-active');
     }
 
     function unhighlightCharInVisual(charIndex) {
-        const span = resultsDisplay.querySelector(`span[data-char-index="${charIndex}"]`);
+        const span = resultsDisplay.querySelector('[data-char-index="' + charIndex + '"]');
         if (span) span.classList.remove('char-hover-active');
     }
 
     function highlightVisualByListIndex(listIndex) {
-        const span = resultsDisplay.querySelector(`span[data-list-index="${listIndex}"]`);
+        const span = resultsDisplay.querySelector('[data-list-index="' + listIndex + '"]');
         if (span) span.classList.add('highlight-active');
     }
 
     function unhighlightVisualByListIndex(listIndex) {
-        const span = resultsDisplay.querySelector(`span[data-list-index="${listIndex}"]`);
+        const span = resultsDisplay.querySelector('[data-list-index="' + listIndex + '"]');
         if (span) span.classList.remove('highlight-active');
     }
 
     function highlightTable(listIndex) {
-        const row = document.getElementById(`result-row-${listIndex}`);
-        if (row) {
-            row.classList.add('table-row-active');
-            row.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-        }
+        const row = document.getElementById('result-row-' + listIndex);
+        if (row) row.classList.add('table-row-active');
     }
 
     function unhighlightTable(listIndex) {
-        const row = document.getElementById(`result-row-${listIndex}`);
+        const row = document.getElementById('result-row-' + listIndex);
         if (row) row.classList.remove('table-row-active');
     }
 
-    window.applyFix = function (listIndex) {
-        const item = currentResults[listIndex];
-        if (!item || !item.suggestion) return;
-
-        const currentText = textInput.value;
-        // Adjust index because previous fixes might have shifted text?
-        // Actually, our logic assumes simple replacement.
-        // If we do single fix, we re-analyze immediately, so indices are fresh.
-        const index = item.index;
-
-        const newText = currentText.substring(0, index) + item.suggestion + currentText.substring(index + 1);
-        textInput.value = newText;
-        performAnalysis();
-    };
+    function getDisplayChar(char) {
+        if (char === ' ') return 'Space';
+        if (char === '\n') return 'LF';
+        if (char === '\t') return 'Tab';
+        return char;
+    }
 });
