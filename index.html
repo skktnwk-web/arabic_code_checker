@@ -1,27 +1,33 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Arabic Script Character Code Checker</title>
-    <link href="https://fonts.googleapis.com/css2?family=Amiri:ital,wght@0,400;0,700;1,400&family=Outfit:wght@300;400;600&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="style.css">
+    <title>Arabic Character Code Checker</title>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Amiri:ital,wght@0,400;0,700;1,400&family=Outfit:wght@300;400;600&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="static/style.css">
 </head>
+
 <body>
     <div class="app-container">
         <header>
-            <h1>Arabic Script Character Code Checker</h1>
+            <h1>Arabic Character Code Checker</h1>
+            <p class="subtitle">アラビア文字コードチェッカー</p>
         </header>
+
         <main>
             <div class="input-section">
                 <div class="controls">
                     <label class="radio-container">
-                        <input type="radio" name="language" value="Persian" checked>
-                        <span class="radio-label">Persian (Farsi)</span>
+                        <input type="radio" name="language" value="Arabic" checked>
+                        <span class="radio-label">Arabic</span>
                     </label>
                     <label class="radio-container">
-                        <input type="radio" name="language" value="Arabic">
-                        <span class="radio-label">Arabic</span>
+                        <input type="radio" name="language" value="Persian">
+                        <span class="radio-label">Persian (Farsi)</span>
                     </label>
                     <button id="analyze-btn" class="primary-btn">Analyze Text</button>
                     <button id="clear-btn" class="secondary-btn">Clear</button>
@@ -29,34 +35,52 @@
                 <div class="textarea-wrapper">
                     <textarea id="text-input" placeholder="Paste your text here..." dir="auto"></textarea>
                 </div>
+
                 <div class="char-codes-container" id="all-char-codes-display">
                     <span class="placeholder-text">Character code breakdown will appear here...</span>
                 </div>
             </div>
-            <div class="output-section">
-                <div class="visual-col">
-                    <h3>Highlighted Text</h3>
+
+            <div class="comparison-section" id="comparison-section">
+                <div class="comparison-col">
+                    <div class="col-header">
+                        <h3>Highlighted Text</h3>
+                    </div>
                     <div class="results-visual" id="results-display" dir="auto">
-                        <span class="placeholder-text">Analysis highlights...</span>
+                        <span class="placeholder-text">Analysis highlights will appear here...</span>
                     </div>
                 </div>
-                <div class="table-col">
-                    <h3>Analysis Report</h3>
-                    <div class="table-scroll">
-                        <table id="results-table">
-                            <thead>
-                                <tr>
-                                    <th>Char</th>
-                                    <th>Code</th>
-                                    <th>Name</th>
-                                    <th>Level</th>
-                                    <th>Reason</th>
-                                    <th>Action</th>
-                                </tr>
-                            </thead>
-                            <tbody></tbody>
-                        </table>
+
+                <div class="comparison-col">
+                    <div class="col-header">
+                        <h3>Corrected Text</h3>
+                        <button id="copy-corrected-btn" class="primary-btn small-btn">Copy</button>
                     </div>
+                    <div class="results-visual corrected-box" id="corrected-display" dir="auto">
+                        <textarea id="corrected-text-output" readonly placeholder="Corrected text will appear here..." dir="auto"></textarea>
+                    </div>
+                </div>
+            </div>
+
+            <div class="report-section" id="report-section">
+                <div class="report-header">
+                    <h3>Analysis Report</h3>
+                    <button id="fix-all-btn" class="secondary-btn small-btn">Fix All</button>
+                </div>
+                <div class="table-scroll">
+                    <table id="results-table">
+                        <thead>
+                            <tr>
+                                <th style="width: 60px;">Char</th>
+                                <th style="width: 90px;">Code</th>
+                                <th style="width: 180px;">Name</th>
+                                <th>Reason</th>
+                                <th style="width: 140px; text-align: center;">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                        </tbody>
+                    </table>
                 </div>
             </div>
         </main>
@@ -65,6 +89,7 @@
         <p><strong>Character Code Checker</strong> - A tool to detect and correct script mixing issues in Persian and Arabic text.</p>
         <p>Built for precision and ease of use.</p>
     </footer>
-    <script src="script.js"></script>
+    <script src="static/script.js"></script>
 </body>
+
 </html>
