@@ -337,6 +337,28 @@ th {
     z-index: 10;
 }
 
+.category-badge {
+    display: inline-block;
+    padding: 0.28rem 0.7rem;
+    border-radius: 999px;
+    font-size: 0.82rem;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+    border: 1px solid transparent;
+}
+
+.category-caution {
+    background-color: rgba(241, 196, 15, 0.22);
+    color: #8a6d00;
+    border-color: rgba(241, 196, 15, 0.45);
+}
+
+.category-error {
+    background-color: rgba(231, 76, 60, 0.18);
+    color: #8b2d23;
+    border-color: rgba(231, 76, 60, 0.35);
+}
+
 .suggestion-preview {
     color: var(--secondary-color);
     font-weight: 600;
