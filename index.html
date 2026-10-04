@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Arabic Character Code Checker</title>
+    <title>Arabic Character Code Checker | アラビア文字コードチェッカー</title>
     <link
         href="https://fonts.googleapis.com/css2?family=Amiri:ital,wght@0,400;0,700;1,400&family=Outfit:wght@300;400;600&display=swap"
         rel="stylesheet">
@@ -14,7 +14,7 @@
 <body>
     <div class="app-container">
         <header>
-            <h1>Arabic Character Code Checker</h1>
+            <h1>Arabic Character Code Checker<span class="title-ja" lang="ja">アラビア文字コードチェッカー</span></h1>
         </header>
 
         <main>
@@ -39,9 +39,7 @@
                     <textarea id="text-input" placeholder="Paste your text here..." dir="auto"></textarea>
                 </div>
 
-                <div class="char-codes-container" id="all-char-codes-display">
-                    <span class="placeholder-text">Character code breakdown will appear here...</span>
-                </div>
+                <div class="char-codes-container" id="all-char-codes-display"><span class="placeholder-text">Character code breakdown will appear here...</span></div>
             </div>
 
             <div class="comparison-section" id="comparison-section">
@@ -49,9 +47,7 @@
                     <div class="col-header">
                         <h3>Highlighted Text</h3>
                     </div>
-                    <div class="results-visual" id="results-display" dir="auto">
-                        <span class="placeholder-text">Analysis highlights will appear here...</span>
-                    </div>
+                    <div class="results-visual" id="results-display" dir="auto"><span class="placeholder-text">Analysis highlights will appear here...</span></div>
                 </div>
 
                 <div class="comparison-col">
@@ -87,13 +83,55 @@
                     </table>
                 </div>
             </div>
+
+            <section class="vowel-editor-section" id="vowel-editor-section">
+                <div class="vowel-editor-header">
+                    <h3>Diacritics Editor</h3>
+                </div>
+                <p class="vowel-editor-hint">Select a character below to add or remove its diacritics. Changes appear in Edited result.</p>
+                <div class="vowel-editor-block">
+                    <h4>Select a character</h4>
+                    <div id="vowel-character-list" class="vowel-character-list" dir="rtl" aria-label="Select a character to edit"></div>
+                </div>
+                <div class="vowel-editor-block">
+                    <h4>Diacritics</h4>
+                    <div class="vowel-mark-controls">
+                        <button class="vowel-mark-btn" type="button" data-vowel-mark-code="064E" title="Toggle fatha"><span class="vowel-mark-glyph">◌َ</span><span>Fatha</span></button>
+                        <button class="vowel-mark-btn" type="button" data-vowel-mark-code="064F" title="Toggle damma"><span class="vowel-mark-glyph">◌ُ</span><span>Damma</span></button>
+                        <button class="vowel-mark-btn" type="button" data-vowel-mark-code="0650" title="Toggle kasra"><span class="vowel-mark-glyph">◌ِ</span><span>Kasra</span></button>
+                        <button class="vowel-mark-btn" type="button" data-vowel-mark-code="0652" title="Toggle sukun"><span class="vowel-mark-glyph">◌ْ</span><span>Sukun</span></button>
+                        <button class="vowel-mark-btn" type="button" data-vowel-mark-code="0651" title="Toggle shadda"><span class="vowel-mark-glyph">◌ّ</span><span>Shadda</span></button>
+                        <button class="vowel-mark-btn" type="button" data-vowel-mark-code="064B" title="Toggle fathatan"><span class="vowel-mark-glyph">◌ً</span><span>Fathatan</span></button>
+                        <button class="vowel-mark-btn" type="button" data-vowel-mark-code="064C" title="Toggle dammatan"><span class="vowel-mark-glyph">◌ٌ</span><span>Dammatan</span></button>
+                        <button class="vowel-mark-btn" type="button" data-vowel-mark-code="064D" title="Toggle kasratan"><span class="vowel-mark-glyph">◌ٍ</span><span>Kasratan</span></button>
+                        <button class="vowel-mark-btn" type="button" data-vowel-mark-code="0670" title="Toggle dagger alif"><span class="vowel-mark-glyph">◌ٰ</span><span>Dagger alif</span></button>
+                        <button class="vowel-mark-btn" type="button" data-vowel-mark-code="0654" title="Toggle hamza above"><span class="vowel-mark-glyph">◌ٔ</span><span>Hamza above</span></button>
+                        <button class="vowel-mark-btn" type="button" data-vowel-mark-code="0655" title="Toggle hamza below"><span class="vowel-mark-glyph">◌ٕ</span><span>Hamza below</span></button>
+                        <button class="vowel-mark-btn" type="button" data-vowel-mark-code="0653" title="Toggle maddah"><span class="vowel-mark-glyph">◌ٓ</span><span>Maddah</span></button>
+                        <button id="insert-zwnj-btn" class="vowel-mark-btn" type="button" title="Toggle U+200C after the selected character"><span class="vowel-mark-glyph zwnj-button-glyph">U+200C</span><span>ZWNJ</span></button>
+                    </div>
+                    <div class="vowel-edit-actions">
+                        <button id="remove-selected-diacritics-btn" class="secondary-btn small-btn" type="button" disabled>Remove diacritics from selected character</button>
+                        <button id="remove-all-diacritics-btn" class="secondary-btn small-btn" type="button" disabled>Remove all diacritics</button>
+                    </div>
+                </div>
+                <div class="vowel-editor-block">
+                    <div class="vowel-result-header">
+                    <h4>Edited result</h4>
+                        <button id="copy-vowel-result-btn" class="primary-btn small-btn" type="button">Copy</button>
+                    </div>
+                    <textarea id="vowel-result-output" class="vowel-result-output" readonly placeholder="Edited text will appear here..." dir="auto"></textarea>
+                </div>
+            </section>
         </main>
     </div>
     <footer>
-        <p><strong>About</strong>: This tool is designed to check the Unicode code points of Arabic-script characters for bibliographic cataloging. It is intended for verifying text copied from OCR results or websites.</p>
-        <p><strong>Disclaimer</strong>: This tool is provided for informational purposes only. Please verify the results independently before relying on them.</p>
+        <p><strong>About</strong>: This tool is designed to check the Unicode code points of Arabic-script characters for bibliographic cataloging. It can be used to verify text copied from OCR results or websites.<br><br>It also provides a function to add Arabic diacritics to text. OCR may omit diacritics such as vowel marks and shadda, which can lead to inaccurate romanization when the text is processed by generative AI. This function helps restore missing diacritics before generating romanization.</p>
+        <p class="footer-ja" lang="ja">このツールは、書誌目録作成のためにアラビア文字系文字のUnicodeコードポイントを確認する目的で設計されています。OCR結果やウェブサイトからコピーしたテキストの確認に利用できます。<br><br>また、テキストにアラビア語の発音記号を追加する機能もあります。OCRでは母音記号やシャッダなどが省略されることがあり、そのまま生成AIで処理するとローマ字転写が不正確になる場合があります。この機能を使うことで、ローマ字転写を生成する前に欠落した発音記号を補えます。</p>
+        <p><strong>Disclaimer</strong>: This tool does not necessarily detect all relevant Unicode code points or character patterns. Its detection rules are not intended to be comprehensive, and a character or pattern that is not detected should not necessarily be considered correct or problem-free. The results are provided for reference purposes only. Please verify the Unicode code points independently before relying on the results.</p>
+        <p class="footer-ja" lang="ja">このツールでは、関連するUnicodeコードポイントや文字パターンをすべて検出できるとは限りません。検出ルールは網羅的なものではなく、検出されなかった文字やパターンが必ずしも正しい、または問題がないとは限りません。結果は参考情報としてのみご利用ください。結果を信頼する前に、Unicodeコードポイントを個別に確認してください。</p>
     </footer>
-    <script src="static/script.js?v=2"></script>
+    <script src="static/script.js?v=3"></script>
 </body>
 
 </html>
