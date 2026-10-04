@@ -55,6 +55,17 @@ h1 {
     letter-spacing: 2px;
 }
 
+.title-ja {
+    display: block;
+    margin-top: 0.35rem;
+    color: #7b7771;
+    font-family: "Yu Gothic", "Meiryo", sans-serif;
+    font-size: 0.9rem;
+    font-weight: 400;
+    letter-spacing: 0;
+    text-transform: none;
+}
+
 .subtitle {
     color: var(--secondary-color);
     font-weight: 300;
@@ -257,10 +268,28 @@ button:active {
 }
 
 .placeholder-text {
-    color: #bdc3c7;
+    color: #9aa4a8;
     font-family: var(--font-latin);
     font-size: 1rem;
     font-style: italic;
+    opacity: 1;
+}
+
+textarea::placeholder {
+    color: #9aa4a8;
+    font-family: var(--font-latin);
+    font-size: 1rem;
+    font-style: italic;
+    opacity: 1;
+}
+
+.results-visual > .placeholder-text,
+.vowel-character-list > .placeholder-text,
+.char-codes-container > .placeholder-text {
+    display: block;
+    direction: ltr;
+    line-height: normal;
+    text-align: left;
 }
 
 /* Highlights */
@@ -393,6 +422,164 @@ th {
     background-color: #eaf2f8;
 }
 
+/* Vowel editor */
+.vowel-editor-section {
+    display: flex;
+    flex-direction: column;
+    gap: 0.8rem;
+    padding-top: 1rem;
+    border-top: 2px solid #dce4e1;
+}
+
+.vowel-editor-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+}
+
+.vowel-editor-header h3,
+.vowel-editor-block h4 {
+    margin: 0;
+    color: var(--text-color);
+}
+
+.vowel-editor-hint {
+    margin: 0;
+    color: #58676b;
+}
+
+.vowel-editor-block {
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
+}
+
+.vowel-editor-block h4 {
+    font-size: 1rem;
+}
+
+.vowel-character-list {
+    min-height: 2.8rem;
+    padding: 0.7rem;
+    border: 1px solid #cbd5d2;
+    border-radius: 6px;
+    background: white;
+    direction: rtl;
+    text-align: right;
+    white-space: pre-wrap;
+    font-family: var(--font-arabic);
+    font-size: 1.7rem;
+    line-height: 2;
+}
+
+.vowel-character {
+    border-radius: 3px;
+    cursor: pointer;
+    outline-offset: 2px;
+}
+
+.vowel-character:hover,
+.vowel-character.selected {
+    background: #dceef0;
+    box-shadow: 0 0 0 1px var(--secondary-color);
+}
+
+.vowel-mark-controls {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+
+.vowel-mark-btn {
+    display: inline-flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0.2rem;
+    min-width: 6rem;
+    min-height: 4.5rem;
+    padding: 0.45rem 0.6rem;
+    border: 1px solid #cbd5d2;
+    background: #fff;
+    color: #24343b;
+}
+
+.vowel-mark-btn:hover:not(:disabled),
+.vowel-mark-btn.mark-present {
+    border-color: var(--secondary-color);
+    background: #e7f2f4;
+}
+
+.vowel-mark-btn:disabled {
+    cursor: not-allowed;
+    opacity: 0.48;
+}
+
+.vowel-mark-glyph {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 2.08rem;
+    font-family: var(--font-arabic);
+    font-size: 1.6rem;
+    line-height: 1.3;
+}
+
+.zwnj-button-glyph {
+    font-size: 0.9rem;
+}
+
+.vowel-edit-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+
+.vowel-result-output {
+    min-height: 8rem;
+    border: 1px solid #cbd5d2;
+    border-radius: 6px;
+    background: white;
+    color: #24343b;
+    font-size: 1.5rem;
+    line-height: 1.8;
+}
+
+.vowel-result-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+}
+
+@media (max-width: 600px) {
+    .app-container {
+        max-width: calc(100% - 1rem);
+        padding: 1rem;
+    }
+
+    .controls {
+        flex-wrap: wrap;
+    }
+
+    .controls .primary-btn {
+        margin-left: 0;
+    }
+
+    .table-scroll {
+        overflow-x: auto;
+    }
+
+    .vowel-editor-header {
+        align-items: flex-start;
+    }
+
+    .vowel-mark-btn {
+        flex: 1 1 5.5rem;
+    }
+}
+
 /* Footer */
 footer {
     text-align: center;
@@ -402,4 +589,16 @@ footer {
     font-size: 0.9rem;
     color: rgba(255, 255, 255, 0.85);
     backdrop-filter: blur(4px);
+}
+
+footer p {
+    max-width: 1000px;
+    margin: 0 auto 0.7rem;
+}
+
+footer .footer-ja {
+    color: rgba(255, 255, 255, 0.68);
+    font-family: "Yu Gothic", "Meiryo", sans-serif;
+    font-size: 0.78rem;
+    line-height: 1.7;
 }

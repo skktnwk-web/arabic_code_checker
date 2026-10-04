@@ -9,6 +9,16 @@ document.addEventListener('DOMContentLoaded', () => {
     const correctedTextOutput = document.getElementById('corrected-text-output');
     const copyCorrectedBtn = document.getElementById('copy-corrected-btn');
     const fixAllBtn = document.getElementById('fix-all-btn');
+    const vowelCharacterList = document.getElementById('vowel-character-list');
+    const vowelResultOutput = document.getElementById('vowel-result-output');
+    const vowelMarkButtons = document.querySelectorAll('[data-vowel-mark-code]');
+    const removeSelectedDiacriticsBtn = document.getElementById('remove-selected-diacritics-btn');
+    const removeAllDiacriticsBtn = document.getElementById('remove-all-diacritics-btn');
+    const insertZwnjBtn = document.getElementById('insert-zwnj-btn');
+    const copyVowelResultBtn = document.getElementById('copy-vowel-result-btn');
+    const ARABIC_DIACRITICS = /[\u064B-\u065F\u0670]/g;
+    const ARABIC_DIACRITICS_TEST = /[\u064B-\u065F\u0670]/;
+    const ZWNJ = '\u200C';
 
     // Detection rules are data-driven, sourced from the language review spreadsheet.
     // Each entry describes one character that should be flagged for a given language,
@@ -127,11 +137,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
     let currentResults = [];
     let appliedFixes = new Set();
+    let vowelEditorText = textInput.value.normalize('NFC');
+    let selectedVowelSegmentIndex = -1;
 
     const urlParams = new URLSearchParams(window.location.search);
     const testParam = urlParams.get('test');
     if (testParam) {
         textInput.value = decodeURIComponent(testParam);
+        vowelEditorText = textInput.value.normalize('NFC');
         setTimeout(performAnalysis, 100);
     }
 
@@ -141,6 +154,15 @@ document.addEventListener('DOMContentLoaded', () => {
     textInput?.addEventListener('input', clearIfEmpty);
     copyCorrectedBtn?.addEventListener('click', copyCorrectedText);
     fixAllBtn?.addEventListener('click', handleFixAll);
+    textInput?.addEventListener('input', syncVowelEditorFromInput);
+    vowelMarkButtons.forEach(button => button.addEventListener('click', () => {
+        toggleVowelMark(String.fromCodePoint(parseInt(button.dataset.vowelMarkCode, 16)));
+    }));
+    removeSelectedDiacriticsBtn?.addEventListener('click', removeSelectedDiacritics);
+    removeAllDiacriticsBtn?.addEventListener('click', removeAllDiacritics);
+    insertZwnjBtn?.addEventListener('click', toggleZwnj);
+    copyVowelResultBtn?.addEventListener('click', copyVowelResult);
+    renderVowelEditor();
 
     function clearAll() {
         textInput.value = '';
@@ -150,6 +172,9 @@ document.addEventListener('DOMContentLoaded', () => {
         currentResults = [];
         appliedFixes.clear();
         correctedTextOutput.value = '';
+        vowelEditorText = '';
+        selectedVowelSegmentIndex = -1;
+        renderVowelEditor();
     }
 
     function handleTextInputKeydown(e) {
@@ -162,6 +187,140 @@ document.addEventListener('DOMContentLoaded', () => {
     function clearIfEmpty() {
         if (!textInput.value) {
             clearAll();
+        }
+    }
+
+    function getVowelSegments(text) {
+        const graphemes = [];
+        if (typeof Intl.Segmenter === 'function') {
+            graphemes.push(...Array.from(new Intl.Segmenter(undefined, { granularity: 'grapheme' }).segment(text), item => item.segment));
+        } else {
+            for (const char of text) {
+                if (char === ZWNJ) graphemes.push(char);
+                else if (/\p{M}/u.test(char) && graphemes.length > 0 && graphemes[graphemes.length - 1] !== ZWNJ) graphemes[graphemes.length - 1] += char;
+                else graphemes.push(char);
+            }
+        }
+
+        return graphemes.flatMap(grapheme => {
+            if (!grapheme.includes(ZWNJ)) return [grapheme];
+            return grapheme.split(ZWNJ).flatMap((part, index, parts) => index < parts.length - 1 ? [part, ZWNJ] : [part]).filter(Boolean);
+        });
+    }
+
+    function syncVowelEditorFromInput() {
+        vowelEditorText = textInput.value.normalize('NFC');
+        selectedVowelSegmentIndex = -1;
+        renderVowelEditor();
+    }
+
+    function renderVowelEditor() {
+        if (!vowelCharacterList || !vowelResultOutput) return;
+        const segments = getVowelSegments(vowelEditorText);
+        vowelCharacterList.replaceChildren();
+
+        if (segments.length === 0) {
+            const placeholder = document.createElement('span');
+            placeholder.className = 'placeholder-text';
+            placeholder.textContent = 'Enter text in the input field to edit it here...';
+            vowelCharacterList.appendChild(placeholder);
+        } else {
+            segments.forEach((segment, index) => {
+                if (segment === ZWNJ) return;
+                const isArabicLetter = /\p{Script=Arabic}/u.test(segment) && /\p{L}/u.test(segment);
+                const charElement = document.createElement('span');
+                if (isArabicLetter) {
+                    charElement.className = 'vowel-character' + (index === selectedVowelSegmentIndex ? ' selected' : '');
+                    charElement.setAttribute('role', 'button');
+                    charElement.tabIndex = 0;
+                    charElement.setAttribute('aria-pressed', String(index === selectedVowelSegmentIndex));
+                    charElement.setAttribute('aria-label', 'Select ' + segment);
+                    const selectCharacter = () => {
+                        selectedVowelSegmentIndex = index;
+                        renderVowelEditor();
+                    };
+                    charElement.addEventListener('click', selectCharacter);
+                    charElement.addEventListener('keydown', event => {
+                        if (event.key === 'Enter' || event.key === ' ') {
+                            event.preventDefault();
+                            selectCharacter();
+                        }
+                    });
+                } else {
+                    charElement.className = 'vowel-character-static';
+                }
+                charElement.textContent = segment;
+                vowelCharacterList.appendChild(charElement);
+            });
+        }
+
+        const selectedSegment = segments[selectedVowelSegmentIndex] || '';
+        const hasArabicSelection = /\p{Script=Arabic}/u.test(selectedSegment) && /\p{L}/u.test(selectedSegment);
+        vowelMarkButtons.forEach(button => {
+            const mark = String.fromCodePoint(parseInt(button.dataset.vowelMarkCode, 16));
+            const isPresent = hasArabicSelection && selectedSegment.includes(mark);
+            button.disabled = !hasArabicSelection;
+            button.classList.toggle('mark-present', isPresent);
+            button.setAttribute('aria-pressed', String(isPresent));
+        });
+        const hasZwnjAfterSelection = segments[selectedVowelSegmentIndex + 1] === ZWNJ;
+        insertZwnjBtn.disabled = !hasArabicSelection;
+        insertZwnjBtn.classList.toggle('mark-present', hasArabicSelection && hasZwnjAfterSelection);
+        insertZwnjBtn.setAttribute('aria-pressed', String(hasArabicSelection && hasZwnjAfterSelection));
+        removeSelectedDiacriticsBtn.disabled = !hasArabicSelection || (!ARABIC_DIACRITICS_TEST.test(selectedSegment) && !hasZwnjAfterSelection);
+        removeAllDiacriticsBtn.disabled = !ARABIC_DIACRITICS_TEST.test(vowelEditorText) && !vowelEditorText.includes(ZWNJ);
+        vowelResultOutput.value = vowelEditorText;
+    }
+
+    function toggleVowelMark(mark) {
+        const segments = getVowelSegments(vowelEditorText);
+        const selectedSegment = segments[selectedVowelSegmentIndex];
+        if (!selectedSegment) return;
+
+        if (selectedSegment.includes(mark)) {
+            segments[selectedVowelSegmentIndex] = selectedSegment.replaceAll(mark, '');
+        } else {
+            segments[selectedVowelSegmentIndex] = selectedSegment + mark;
+        }
+        vowelEditorText = segments.join('').normalize('NFC');
+        renderVowelEditor();
+    }
+
+    function removeSelectedDiacritics() {
+        const segments = getVowelSegments(vowelEditorText);
+        if (!segments[selectedVowelSegmentIndex]) return;
+        segments[selectedVowelSegmentIndex] = segments[selectedVowelSegmentIndex].replace(ARABIC_DIACRITICS, '');
+        if (segments[selectedVowelSegmentIndex + 1] === ZWNJ) segments.splice(selectedVowelSegmentIndex + 1, 1);
+        vowelEditorText = segments.join('').normalize('NFC');
+        renderVowelEditor();
+    }
+
+    function removeAllDiacritics() {
+        vowelEditorText = vowelEditorText.replace(ARABIC_DIACRITICS, '').replaceAll(ZWNJ, '');
+        selectedVowelSegmentIndex = -1;
+        renderVowelEditor();
+    }
+
+    function toggleZwnj() {
+        const segments = getVowelSegments(vowelEditorText);
+        const selectedSegment = segments[selectedVowelSegmentIndex];
+        if (!selectedSegment || !/\p{Script=Arabic}/u.test(selectedSegment) || !/\p{L}/u.test(selectedSegment)) return;
+        const zwnjIndex = selectedVowelSegmentIndex + 1;
+        if (segments[zwnjIndex] === ZWNJ) segments.splice(zwnjIndex, 1);
+        else segments.splice(zwnjIndex, 0, ZWNJ);
+        vowelEditorText = segments.join('').normalize('NFC');
+        renderVowelEditor();
+    }
+
+    async function copyVowelResult() {
+        const text = vowelResultOutput.value;
+        if (!text) return;
+        try {
+            await navigator.clipboard.writeText(text);
+        } catch {
+            vowelResultOutput.select();
+            document.execCommand('copy');
+            vowelResultOutput.setSelectionRange(0, 0);
         }
     }
 
